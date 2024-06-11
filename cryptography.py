@@ -9,8 +9,21 @@ key_size = {
     "AES": (128, 192, 256),
     "DES": (56, 64),
     "RSA": (1024, 2048, 3072, 4096),
-}.get(algorithm)[0]
-file_to_encrypt = ("1MB", "100MB", "1GB")[2]
+}.get(algorithm)[1]
+file_to_encrypt = (
+    "1MB",
+    "10MB",
+    "25MB",
+    "50MB",
+    "75MB",
+    "100MB",
+    "250MB",
+    "500MB",
+    "750MB",
+    "1GB",
+    "2GB",
+    "5GB",
+)[11]
 host = ("macbook_air_m2", "raspberry_pi_3B", "raspberry_pi_4")[0]
 
 output_dir = f"./reports/{host}/"
