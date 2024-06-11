@@ -12,7 +12,7 @@ output_dir = f"./reports/{host}/"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-output_file = f"emissions_{host}_{file_to_encrypt}.csv"
+output_file = f"emissions_{host}_{algorithm}_{file_to_encrypt}.csv"
 
 
 def pad(data, block_size):
@@ -106,5 +106,7 @@ print(f"File '{file_to_encrypt}.enc' has been decrypted with {algorithm}.")
 
 # Codecarbon tracks Apple Silicon Chip energy consumption using powermetrics
 if os.path.exists(output_dir + "powermetrics_log.txt"):
-    log_file_name = output_dir + f"powermetrics_log_{host}_{file_to_encrypt}.txt"
+    log_file_name = (
+        output_dir + f"powermetrics_log_{host}_{algorithm}_{file_to_encrypt}.txt"
+    )
     os.rename(output_dir + "powermetrics_log.txt", log_file_name)
