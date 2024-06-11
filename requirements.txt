@@ -1,0 +1,2 @@
+codecarbon==2.4.2
+pycryptodome==3.20.0
