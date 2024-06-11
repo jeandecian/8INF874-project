@@ -5,6 +5,11 @@ from codecarbon import track_emissions
 import os
 
 algorithm = ("AES", "DES", "RSA")[0]
+key_size = {
+    "AES": (16, 128, 192, 256),
+    "DES": (8, 56),
+    "RSA": (1024, 2048, 3072, 4096),
+}.get(algorithm)[0]
 file_to_encrypt = ("1MB", "100MB", "1GB")[2]
 host = ("macbook_air_m2", "raspberry_pi_3B", "raspberry_pi_4")[0]
 
@@ -12,7 +17,7 @@ output_dir = f"./reports/{host}/"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-output_file = f"emissions_{host}_{algorithm}_{file_to_encrypt}.csv"
+output_file = f"emissions_{host}_{algorithm}_{key_size}_{file_to_encrypt}.csv"
 
 
 def pad(data, block_size):
@@ -86,15 +91,15 @@ def decrypt_file(file_path, key, algorithm="AES"):
 
 
 if algorithm == "AES":
-    aes_key = get_random_bytes(16)
+    aes_key = get_random_bytes(key_size)
     enc_key = aes_key
     dec_key = aes_key
 elif algorithm == "DES":
-    des_key = get_random_bytes(8)
+    des_key = get_random_bytes(key_size)
     enc_key = des_key
     dec_key = des_key
 elif algorithm == "RSA":
-    rsa_key = RSA.generate(2048)
+    rsa_key = RSA.generate(key_size)
     enc_key = rsa_key.export_key()
     dec_key = rsa_key.publickey().export_key()
 
@@ -107,6 +112,7 @@ print(f"File '{file_to_encrypt}.enc' has been decrypted with {algorithm}.")
 # Codecarbon tracks Apple Silicon Chip energy consumption using powermetrics
 if os.path.exists(output_dir + "powermetrics_log.txt"):
     log_file_name = (
-        output_dir + f"powermetrics_log_{host}_{algorithm}_{file_to_encrypt}.txt"
+        output_dir
+        + f"powermetrics_log_{host}_{algorithm}_{key_size}_{file_to_encrypt}.txt"
     )
     os.rename(output_dir + "powermetrics_log.txt", log_file_name)
