@@ -1,5 +1,4 @@
-from Crypto.Cipher import AES, DES, PKCS1_OAEP
-from Crypto.PublicKey import RSA
+from Crypto.Cipher import AES, DES
 from Crypto.Random import get_random_bytes
 from codecarbon import track_emissions
 import os
@@ -21,11 +20,10 @@ output_dir = f"./reports/{host}/"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-algorithm = ("AES", "DES", "RSA")[0]
+algorithm = ("AES", "DES")[0]
 KEY_SIZE = {
     "AES": (128, 192, 256),
-    "DES": (56, 64),
-    "RSA": (1024, 2048, 3072, 4096),
+    "DES": [64],
 }.get(algorithm)
 FILE_SIZE = (
     "1MB",
@@ -42,13 +40,15 @@ FILE_SIZE = (
     "5GB",
 )
 
+FILES_DIR = "files/"
+
 for key_size in KEY_SIZE:
     for file_size in FILE_SIZE:
         output_file = f"emissions_{host}_{algorithm}_{key_size}_{file_size}.csv"
 
         @track_emissions(output_dir=output_dir, output_file=output_file)
         def encrypt_file(file_path, key, algorithm="AES"):
-            with open("files/" + file_path, "rb") as file:
+            with open(FILES_DIR + file_path, "rb") as file:
                 file_data = file.read()
 
             if algorithm == "AES":
@@ -63,20 +63,15 @@ for key_size in KEY_SIZE:
                 cipher = DES.new(key, DES.MODE_CBC, iv)
                 ciphertext = iv + cipher.encrypt(padded_data)
 
-            elif algorithm == "RSA":
-                recipient_key = RSA.import_key(key)
-                cipher_rsa = PKCS1_OAEP.new(recipient_key)
-                ciphertext = cipher_rsa.encrypt(file_data)
-
             else:
                 raise ValueError(f"Unsupported algorithm: {algorithm}")
 
-            with open("files/" + file_path + ".enc", "wb") as enc_file:
+            with open(FILES_DIR + file_path + ".enc", "wb") as enc_file:
                 enc_file.write(ciphertext)
 
         @track_emissions(output_dir=output_dir, output_file=output_file)
         def decrypt_file(file_path, key, algorithm="AES"):
-            with open("files/" + file_path, "rb") as enc_file:
+            with open(FILES_DIR + file_path, "rb") as enc_file:
                 ciphertext = enc_file.read()
 
             if algorithm == "AES":
@@ -93,15 +88,10 @@ for key_size in KEY_SIZE:
                 padded_plaintext = cipher.decrypt(actual_ciphertext)
                 plaintext = unpad(padded_plaintext)
 
-            elif algorithm == "RSA":
-                private_key = RSA.import_key(key)
-                cipher_rsa = PKCS1_OAEP.new(private_key)
-                plaintext = cipher_rsa.decrypt(ciphertext)
-
             else:
                 raise ValueError(f"Unsupported algorithm: {algorithm}")
 
-            with open("files/" + file_path[:-4], "wb") as dec_file:
+            with open(FILES_DIR + file_path[:-4], "wb") as dec_file:
                 dec_file.write(plaintext)
 
         if algorithm == "AES":
@@ -112,10 +102,6 @@ for key_size in KEY_SIZE:
             des_key = get_random_bytes(key_size // 8)
             enc_key = des_key
             dec_key = des_key
-        elif algorithm == "RSA":
-            rsa_key = RSA.generate(key_size)
-            enc_key = rsa_key.export_key()
-            dec_key = rsa_key.publickey().export_key()
 
         encrypt_file(file_size, enc_key, algorithm=algorithm)
         print(f"File '{file_size}' has been encrypted with {algorithm}-{key_size}.")
