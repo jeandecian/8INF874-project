@@ -63,7 +63,7 @@ def plot(y, ylabel, title, title_slug):
     for host in HOST:
         for algorithm in algorithms:
             subset = df[
-                (df["host"] == HOST[1]) & (df["algorithm_key"] == algorithm)
+                (df["host"] == host) & (df["algorithm_key"] == algorithm)
             ].sort_values(by="file_size_MB")
 
             plt.plot(
