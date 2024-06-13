@@ -1,11 +1,14 @@
+import matplotlib.pyplot as plt
 import pandas as pd
 import os
+
+HOST = ("macbook_air_m2", "raspberry_pi_3B", "raspberry_pi_4")
 
 
 def read_reports_data():
     data = []
 
-    for host in ("macbook_air_m2", "raspberry_pi_3B", "raspberry_pi_4"):
+    for host in HOST:
         files = os.listdir(f"reports/{host}")
         csv_files = list(filter(lambda x: x.endswith(".csv"), files))
 
@@ -49,6 +52,13 @@ def read_reports_data():
     return data
 
 
+def convert_to_mb(file_size):
+    if "MB" in file_size:
+        return float(file_size.replace("MB", ""))
+    elif "GB" in file_size:
+        return float(file_size.replace("GB", "")) * 1024
+
+
 UPDATE_DATA = False
 
 data = read_reports_data() if UPDATE_DATA else pd.read_csv("reports/combined.csv")
@@ -58,4 +68,32 @@ df = pd.DataFrame(data)
 if UPDATE_DATA:
     df.to_csv("reports/combined.csv")
 
-print(df)
+df["algorithm_key"] = df["algorithm"] + "-" + df["key_size"].astype(str)
+df["file_size_MB"] = df["file_size"].apply(convert_to_mb)
+
+algorithms = df["algorithm_key"].unique()
+
+plt.figure(figsize=(10, 6))
+
+for host in HOST:
+    for algorithm in algorithms:
+        subset = df[
+            (df["host"] == HOST[1]) & (df["algorithm_key"] == algorithm)
+        ].sort_values(by="file_size_MB")
+        print(subset)
+        plt.plot(
+            subset["file_size_MB"],
+            subset["energy_consumed"],
+            marker="+",
+            label=algorithm,
+        )
+
+    plt.xlabel("File Size (MB)")
+    plt.ylabel("Energy Consumed (kWh)")
+
+    plt.title(f"Energy Consumption by File Size on {host}")
+    plt.legend()
+    plt.grid(True)
+
+    plt.savefig(f"reports/images/energy_consumption_file_size_{host}.png")
+    plt.show()
