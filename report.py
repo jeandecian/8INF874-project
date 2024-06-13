@@ -59,6 +59,31 @@ def convert_to_mb(file_size):
         return float(file_size.replace("GB", "")) * 1024
 
 
+def plot(y, ylabel, title, title_slug):
+    for host in HOST:
+        for algorithm in algorithms:
+            subset = df[
+                (df["host"] == HOST[1]) & (df["algorithm_key"] == algorithm)
+            ].sort_values(by="file_size_MB")
+
+            plt.plot(
+                subset["file_size_MB"],
+                subset[y],
+                marker="+",
+                label=algorithm,
+            )
+
+        plt.xlabel("File Size (MB)")
+        plt.ylabel(ylabel)
+
+        plt.title(f"{title} by File Size on {host}")
+        plt.legend()
+        plt.grid(True)
+
+        plt.savefig(f"reports/images/{title_slug}_file_size_{host}.png")
+        plt.show()
+
+
 UPDATE_DATA = False
 
 data = read_reports_data() if UPDATE_DATA else pd.read_csv("reports/combined.csv")
@@ -75,25 +100,12 @@ algorithms = df["algorithm_key"].unique()
 
 plt.figure(figsize=(10, 6))
 
-for host in HOST:
-    for algorithm in algorithms:
-        subset = df[
-            (df["host"] == HOST[1]) & (df["algorithm_key"] == algorithm)
-        ].sort_values(by="file_size_MB")
-        print(subset)
-        plt.plot(
-            subset["file_size_MB"],
-            subset["energy_consumed"],
-            marker="+",
-            label=algorithm,
-        )
 
-    plt.xlabel("File Size (MB)")
-    plt.ylabel("Energy Consumed (kWh)")
-
-    plt.title(f"Energy Consumption by File Size on {host}")
-    plt.legend()
-    plt.grid(True)
-
-    plt.savefig(f"reports/images/energy_consumption_file_size_{host}.png")
-    plt.show()
+plot(
+    "energy_consumed",
+    "Energy Consumed (kWh)",
+    "Energy Consumption",
+    "energy_consumption",
+)
+plot("emissions", "Emissions (kgCO2eq)", "Emissions", "emissions")
+plot("emissions_rate", "Emissions Rate (kgCO2eq)", "Emissions Rate", "emissions_rate")
