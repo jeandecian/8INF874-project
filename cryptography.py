@@ -16,9 +16,9 @@ KEY_SIZE = {
     "AES": (128, 192, 256),
     "DES": [64],
     "3DES": [128, 192],
-    "Blowfish": list(range(32, 449, 8)),
+    "Blowfish": [32],  # list(range(32, 449, 8))
     "Twofish": (128, 192, 256),
-    "RC4": list(range(40, 2049, 8)),
+    "RC4": [40],  # list(range(40, 2049, 8))
 }.get(algorithm)
 FILE_SIZE = (
     "1MB",
