@@ -1,9 +1,10 @@
-from Crypto.Cipher import AES, ARC4, DES, DES3, Blowfish
+from Crypto.Cipher import AES, ARC4, Blowfish, ChaCha20, DES, DES3
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad, unpad
 from codecarbon import track_emissions
 from twofish import Twofish
 import os
+import xtea
 
 host = ("macbook_air_m2", "raspberry_pi_3B", "raspberry_pi_4")[0]
 
@@ -11,14 +12,16 @@ output_dir = f"./reports/{host}/"
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)
 
-algorithm = ("AES", "DES", "3DES", "Blowfish", "Twofish", "RC4")[2]
+algorithm = ("3DES", "AES", "Blowfish", "ChaCha20", "DES", "RC4", "Twofish", "XTEA")[2]
 KEY_SIZE = {
-    "AES": (128, 192, 256),
-    "DES": [64],
     "3DES": [128, 192],
-    "Blowfish": [32],  # list(range(32, 449, 8))
+    "AES": (128, 192, 256),
+    "Blowfish": [32],
+    "ChaCha20": [256],
+    "DES": [64],
+    "RC4": [40],
     "Twofish": (128, 192, 256),
-    "RC4": [40],  # list(range(40, 2049, 8))
+    "XTEA": [128],
 }.get(algorithm)
 FILE_SIZE = (
     "1MB",
@@ -46,22 +49,16 @@ for key_size in KEY_SIZE:
             with open(FILES_DIR + file_path, "rb") as file:
                 file_data = file.read()
 
-            if algorithm == "AES":
-                padded_data = pad(file_data, AES.block_size)
-                iv = get_random_bytes(AES.block_size)
-                cipher = AES.new(key, AES.MODE_CBC, iv)
-                ciphertext = iv + cipher.encrypt(padded_data)
-
-            elif algorithm == "DES":
-                padded_data = pad(file_data, DES.block_size)
-                iv = get_random_bytes(DES.block_size)
-                cipher = DES.new(key, DES.MODE_CBC, iv)
-                ciphertext = iv + cipher.encrypt(padded_data)
-
-            elif algorithm == "3DES":
+            if algorithm == "3DES":
                 padded_data = pad(file_data, DES3.block_size)
                 iv = get_random_bytes(DES3.block_size)
                 cipher = DES3.new(key, DES3.MODE_CBC, iv)
+                ciphertext = iv + cipher.encrypt(padded_data)
+
+            elif algorithm == "AES":
+                padded_data = pad(file_data, AES.block_size)
+                iv = get_random_bytes(AES.block_size)
+                cipher = AES.new(key, AES.MODE_CBC, iv)
                 ciphertext = iv + cipher.encrypt(padded_data)
 
             elif algorithm == "Blowfish":
@@ -70,18 +67,32 @@ for key_size in KEY_SIZE:
                 cipher = Blowfish.new(key, Blowfish.MODE_CBC, iv)
                 ciphertext = iv + cipher.encrypt(padded_data)
 
+            elif algorithm == "ChaCha20":
+                cipher = ChaCha20.new(key=key)
+                ciphertext = cipher.nonce + cipher.encrypt(file_data)
+
+            elif algorithm == "DES":
+                padded_data = pad(file_data, DES.block_size)
+                iv = get_random_bytes(DES.block_size)
+                cipher = DES.new(key, DES.MODE_CBC, iv)
+                ciphertext = iv + cipher.encrypt(padded_data)
+
+            elif algorithm == "RC4":
+                cipher = ARC4.new(key)
+                ciphertext = cipher.encrypt(file_data)
+
             elif algorithm == "Twofish":
                 tf = Twofish(key)
-                padded_data = pad(file_data, 16)  # Twofish has a block size of 16 bytes
+                padded_data = pad(file_data, 16)
                 iv = get_random_bytes(16)
                 ciphertext = iv
                 for i in range(0, len(padded_data), 16):
                     block = padded_data[i : i + 16]
                     ciphertext += tf.encrypt(block)
 
-            elif algorithm == "RC4":
-                cipher = ARC4.new(key)
-                ciphertext = cipher.encrypt(file_data)  # RC4 doesn't use padding or IV
+            elif algorithm == "XTEA":
+                cipher = xtea.new(key, mode=xtea.MODE_OFB)
+                ciphertext = cipher.encrypt(pad(file_data, 8))
 
             else:
                 raise ValueError(f"Unsupported algorithm: {algorithm}")
@@ -94,26 +105,19 @@ for key_size in KEY_SIZE:
             with open(FILES_DIR + file_path, "rb") as enc_file:
                 ciphertext = enc_file.read()
 
-            if algorithm == "AES":
-                iv = ciphertext[: AES.block_size]
-                actual_ciphertext = ciphertext[AES.block_size :]
-                cipher = AES.new(key, AES.MODE_CBC, iv)
-                padded_plaintext = cipher.decrypt(actual_ciphertext)
-                plaintext = unpad(padded_plaintext, AES.block_size)
-
-            elif algorithm == "DES":
-                iv = ciphertext[: DES.block_size]
-                actual_ciphertext = ciphertext[DES.block_size :]
-                cipher = DES.new(key, DES.MODE_CBC, iv)
-                padded_plaintext = cipher.decrypt(actual_ciphertext)
-                plaintext = unpad(padded_plaintext, DES.block_size)
-
-            elif algorithm == "3DES":
+            if algorithm == "3DES":
                 iv = ciphertext[: DES3.block_size]
                 actual_ciphertext = ciphertext[DES3.block_size :]
                 cipher = DES3.new(key, DES3.MODE_CBC, iv)
                 padded_plaintext = cipher.decrypt(actual_ciphertext)
                 plaintext = unpad(padded_plaintext, DES3.block_size)
+
+            elif algorithm == "AES":
+                iv = ciphertext[: AES.block_size]
+                actual_ciphertext = ciphertext[AES.block_size :]
+                cipher = AES.new(key, AES.MODE_CBC, iv)
+                padded_plaintext = cipher.decrypt(actual_ciphertext)
+                plaintext = unpad(padded_plaintext, AES.block_size)
 
             elif algorithm == "Blowfish":
                 iv = ciphertext[: Blowfish.block_size]
@@ -122,8 +126,25 @@ for key_size in KEY_SIZE:
                 padded_plaintext = cipher.decrypt(actual_ciphertext)
                 plaintext = unpad(padded_plaintext, Blowfish.block_size)
 
+            elif algorithm == "ChaCha20":
+                nonce = ciphertext[:8]
+                actual_ciphertext = ciphertext[8:]
+                cipher = ChaCha20.new(key=key, nonce=nonce)
+                plaintext = cipher.decrypt(actual_ciphertext)
+
+            elif algorithm == "DES":
+                iv = ciphertext[: DES.block_size]
+                actual_ciphertext = ciphertext[DES.block_size :]
+                cipher = DES.new(key, DES.MODE_CBC, iv)
+                padded_plaintext = cipher.decrypt(actual_ciphertext)
+                plaintext = unpad(padded_plaintext, DES.block_size)
+
+            elif algorithm == "RC4":
+                cipher = ARC4.new(key)
+                plaintext = cipher.decrypt(ciphertext)
+
             elif algorithm == "Twofish":
-                iv = ciphertext[:16]  # Twofish has a block size of 16 bytes
+                iv = ciphertext[:16]
                 actual_ciphertext = ciphertext[16:]
                 tf = Twofish(key)
                 decrypted_data = b""
@@ -132,9 +153,9 @@ for key_size in KEY_SIZE:
                     decrypted_data += tf.decrypt(block)
                 plaintext = unpad(decrypted_data, 16)
 
-            elif algorithm == "RC4":
-                cipher = ARC4.new(key)
-                plaintext = cipher.decrypt(ciphertext)
+            elif algorithm == "XTEA":
+                cipher = xtea.new(key, mode=xtea.MODE_OFB)
+                plaintext = unpad(cipher.decrypt(ciphertext), 8)
 
             else:
                 raise ValueError(f"Unsupported algorithm: {algorithm}")
@@ -142,20 +163,7 @@ for key_size in KEY_SIZE:
             with open(FILES_DIR + file_path[:-4], "wb") as dec_file:
                 dec_file.write(plaintext)
 
-        if algorithm == "AES":
-            key = get_random_bytes(key_size // 8)
-        elif algorithm == "DES":
-            key = get_random_bytes(key_size // 8)
-        elif algorithm == "3DES":
-            key = get_random_bytes(key_size // 8)
-        elif algorithm == "Blowfish":
-            key = get_random_bytes(key_size // 8)
-        elif algorithm == "Twofish":
-            key = get_random_bytes(key_size // 8)
-        elif algorithm == "RC4":
-            key = get_random_bytes(key_size // 8)
-        else:
-            raise ValueError(f"Unsupported algorithm: {algorithm}")
+        key = get_random_bytes(key_size // 8)
 
         encrypt_file(file_size, key, algorithm=algorithm)
         print(f"File '{file_size}' has been encrypted with {algorithm}-{key_size}.")
