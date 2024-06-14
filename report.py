@@ -100,12 +100,16 @@ algorithms = df["algorithm_key"].unique()
 
 plt.figure(figsize=(10, 6))
 
-
-plot(
-    "energy_consumed",
-    "Energy Consumed (kWh)",
-    "Energy Consumption",
-    "energy_consumption",
+PLOT = (
+    (
+        "energy_consumed",
+        "Energy Consumed (kWh)",
+        "Energy Consumption",
+        "energy_consumption",
+    ),
+    ("emissions", "Emissions (kgCO2eq)", "Emissions", "emissions"),
+    ("emissions_rate", "Emissions Rate (kgCO2eq)", "Emissions Rate", "emissions_rate"),
 )
-plot("emissions", "Emissions (kgCO2eq)", "Emissions", "emissions")
-plot("emissions_rate", "Emissions Rate (kgCO2eq)", "Emissions Rate", "emissions_rate")
+
+for p in PLOT:
+    plot(p[0], p[1], p[2], p[3])
