@@ -1,4 +1,4 @@
-from Crypto.Cipher import AES, DES, DES3, Blowfish
+from Crypto.Cipher import AES, ARC4, DES, DES3, Blowfish
 from Crypto.Random import get_random_bytes
 from Crypto.Util.Padding import pad, unpad
 from codecarbon import track_emissions
@@ -80,8 +80,6 @@ for key_size in KEY_SIZE:
                     ciphertext += tf.encrypt(block)
 
             elif algorithm == "RC4":
-                from Crypto.Cipher import ARC4
-
                 cipher = ARC4.new(key)
                 ciphertext = cipher.encrypt(file_data)  # RC4 doesn't use padding or IV
 
