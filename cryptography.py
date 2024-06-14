@@ -91,8 +91,9 @@ for key_size in KEY_SIZE:
                     ciphertext += tf.encrypt(block)
 
             elif algorithm == "XTEA":
-                cipher = xtea.new(key, mode=xtea.MODE_OFB)
-                ciphertext = cipher.encrypt(pad(file_data, 8))
+                iv = get_random_bytes(xtea.block_size)
+                cipher = xtea.new(key, mode=xtea.MODE_OFB, IV=iv)
+                ciphertext = iv + cipher.encrypt(pad(file_data, 8))
 
             else:
                 raise ValueError(f"Unsupported algorithm: {algorithm}")
@@ -154,7 +155,9 @@ for key_size in KEY_SIZE:
                 plaintext = unpad(decrypted_data, 16)
 
             elif algorithm == "XTEA":
-                cipher = xtea.new(key, mode=xtea.MODE_OFB)
+                iv = ciphertext[:8]
+                ciphertext = ciphertext[8:]
+                cipher = xtea.new(key, mode=xtea.MODE_OFB, IV=iv)
                 plaintext = unpad(cipher.decrypt(ciphertext), 8)
 
             else:
