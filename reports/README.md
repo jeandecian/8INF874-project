@@ -28,28 +28,28 @@
 | AES-192      | x   | x    | x    | x    | x    | x     |       |       |       |     |     |     |
 | AES-256      | x   | x    | x    | x    | x    | x     |       |       |       |     |     |     |
 | Blowfish-32  | x   | x    | x    | x    | x    | x     |       |       |       |     |     |     |
-| ChaCha20-256 |     |      |      |      |      |       |       |       |       |     |     |     |
+| ChaCha20-256 | x   | x    | x    | x    | x    | x     |       |       |       |     |     |     |
 | DES-64       | x   | x    | x    | x    | x    | x     |       |       |       |     |     |     |
 | RC4-40       | x   | x    | x    | x    | x    | x     |       |       |       |     |     |     |
 | Twofish-128  | x   |      |      |      |      |       |       |       |       |     |     |     |
 | Twofish-192  |     |      |      |      |      |       |       |       |       |     |     |     |
 | Twofish-256  |     |      |      |      |      |       |       |       |       |     |     |     |
-| XTEA-128     |     |      |      |      |      |       |       |       |       |     |     |     |
+| XTEA-128     | x   | x    | x    | x    |      |       |       |       |       |     |     |     |
 
 ## Raspberry Pi 4
 
 | Algorithm    | 1MB | 10MB | 25MB | 50MB | 75MB | 100MB | 250MB | 500MB | 750MB | 1GB | 2GB | 5GB |
 | ------------ | --- | ---- | ---- | ---- | ---- | ----- | ----- | ----- | ----- | --- | --- | --- |
-| 3DES-128     |     |      |      |      |      |       |       |       |       |     |     |     |
-| 3DES-192     |     |      |      |      |      |       |       |       |       |     |     |     |
+| 3DES-128     | x   | x    | x    | x    | x    | x     | x     | x     | x     |     |     |     |
+| 3DES-192     | x   | x    | x    | x    | x    | x     | x     | x     | x     |     |     |     |
 | AES-128      | x   | x    | x    | x    | x    | x     | x     | x     | x     |     |     |     |
 | AES-192      | x   | x    | x    | x    | x    | x     | x     | x     | x     |     |     |     |
 | AES-256      | x   | x    | x    | x    | x    | x     | x     | x     | x     |     |     |     |
-| Blowfish-32  |     |      |      |      |      |       |       |       |       |     |     |     |
-| ChaCha20-256 |     |      |      |      |      |       |       |       |       |     |     |     |
-| DES-64       | x   | x    | x    | x    | x    |       |       |       |       |     |     |     |
-| RC4-40       |     |      |      |      |      |       |       |       |       |     |     |     |
+| Blowfish-32  | x   | x    | x    | x    | x    | x     | x     | x     | x     |     |     |     |
+| ChaCha20-256 | x   | x    | x    | x    | x    | x     | x     | x     | x     |     |     |     |
+| DES-64       | x   | x    | x    | x    | x    | x     | x     | x     | x     |     |     |     |
+| RC4-40       | x   | x    | x    | x    | x    | x     | x     | x     | x     |     |     |     |
 | Twofish-128  |     |      |      |      |      |       |       |       |       |     |     |     |
 | Twofish-192  |     |      |      |      |      |       |       |       |       |     |     |     |
 | Twofish-256  |     |      |      |      |      |       |       |       |       |     |     |     |
-| XTEA-128     |     |      |      |      |      |       |       |       |       |     |     |     |
+| XTEA-128     | x   | x    | x    | x    | x    | x     | x     | x     |       |     |     |     |
