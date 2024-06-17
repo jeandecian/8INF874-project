@@ -98,6 +98,38 @@ def plot_per_host(y, ylabel, title, title_slug, exclude_algorithms=[]):
         plt.show()
 
 
+def plot_per_algorithm(y, ylabel, title, title_slug, exclude_hosts=[]):
+    for algorithm in algorithms:
+        for host in HOST:
+            if host not in exclude_hosts:
+                subset = df[
+                    (df["host"] == host) & (df["algorithm_key"] == algorithm)
+                ].sort_values(by="file_size_MB")
+
+                plt.plot(
+                    subset["file_size_MB"],
+                    subset[y],
+                    marker="+",
+                    label=host,
+                )
+
+        plt.xlabel("File Size (MB)")
+        plt.ylabel(ylabel)
+
+        plt.title(f"{title} by File Size using {algorithm}")
+        plt.legend()
+        plt.grid(True)
+
+        if len(exclude_algorithms):
+            plt.savefig(
+                f"reports/images/{title_slug}_file_size_{algorithm}_filtered.png"
+            )
+        else:
+            plt.savefig(f"reports/images/{title_slug}_file_size_{algorithm}.png")
+
+        plt.show()
+
+
 UPDATE_DATA = False
 
 data = read_reports_data() if UPDATE_DATA else pd.read_csv("reports/combined.csv")
@@ -112,10 +144,11 @@ df["file_size_MB"] = df["file_size"].apply(convert_to_mb)
 
 algorithms = df["algorithm_key"].unique()
 exclude_algorithms = ["Twofish-128", "Twofish-192", "Twofish-256", "XTEA-128"]
+exclude_hosts = ["macbook_air_m2"]
 
 plt.figure(figsize=(10, 6))
 
-PLOT_PER_HOST = (
+PLOT = (
     (
         "energy_consumed",
         "Energy Consumed (kWh)",
@@ -139,6 +172,8 @@ PLOT_PER_HOST = (
 )
 
 
-for p in PLOT_PER_HOST:
+for p in PLOT:
+    plot_per_algorithm(p[0], p[1], p[2], p[3])
+    plot_per_algorithm(p[0], p[1], p[2], p[3], exclude_hosts)
     plot_per_host(p[0], p[1], p[2], p[3])
     plot_per_host(p[0], p[1], p[2], p[3], exclude_algorithms)
